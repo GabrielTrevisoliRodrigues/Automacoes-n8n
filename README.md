@@ -32,13 +32,5 @@ Repositório com automações construídas em [n8n](https://n8n.io/) como parte 
 
 ---
 
-## 👤 Autor
-
-**Gabriel Trevisoli Rodrigues**
-Estudante de Ciência da Computação — UNESP
-[LinkedIn](https://linkedin.com/in/) • [GitHub](https://github.com/)
-
----
-
 > Este repositório está em constante evolução conforme novos projetos forem desenvolvidos.
 
