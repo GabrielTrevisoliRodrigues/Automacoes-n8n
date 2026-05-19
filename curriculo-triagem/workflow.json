@@ -1,0 +1,470 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -144
+      ],
+      "id": "a48a674c-89f5-41fc-8cd7-79cacccfdd13",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "lUybd36sEbVCaf6g",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Vaga de programação",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Curriculum",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf ",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -336,
+        -96
+      ],
+      "id": "93f73649-0d16-4085-84c3-8b81ede193e4",
+      "name": "On form submission",
+      "webhookId": "dcb5582f-1bc1-4b96-aed0-59aec4c3ef1a"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "Curriculum",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -128,
+        -96
+      ],
+      "id": "03d16692-f9a5-4965-b46e-06cc19e6390d",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        320,
+        240
+      ],
+      "id": "949df0e3-69c9-41ed-bb44-525d1dca4017",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "lUybd36sEbVCaf6g",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    text: $input.item.json.text\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        -96
+      ],
+      "id": "8d3260d5-44c9-4b06-9673-473165dce412",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"match\": {\n      \"type\": \"boolean\",\n      \"description\": \"true se o currículo combina com a vaga de estágio em ciencia de dados, false caso contrário\"\n    }\n  },\n  \"required\": [\"match\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        -144
+      ],
+      "id": "880e5ecc-5458-4439-a9ef-f811013b3a32",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=crie uma analise qualitativa desse curriculo:\n\n\n{{ $json.text }}",
+        "options": {
+          "systemMessage": "Você é um avaliador de curriculo para a vaga de estágio em ciencia de dados.\nAnalíse o currículo fornecido e gere uma analise qualitativa resumida (4-5 linhas) em formato de comentário, destacando os pontos fortes e lacunas em relação aos requesitos da vaga"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        320,
+        112
+      ],
+      "id": "da0237ee-1b26-4dd1-8a6f-8a49318676e4",
+      "name": "Resumo"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=O currículo é esse:\n {{ $json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Você é um avaliador de currículos para uma vaga de estagio em ciencia de dados.\nAnalise criticamente o currículo fornecido e determine se o candidato tem perfil\ncompatível com a vaga, considerando habilidades técnicas, experiência e formação."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        320,
+        -304
+      ],
+      "id": "7a8c638e-c870-4ba0-aae1-a22913707148",
+      "name": "Match"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        944,
+        -112
+      ],
+      "id": "c06ceafc-4e5a-40f6-9031-456d2b53cba2",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "69529807-9a27-4778-bbaa-fd8444d001e0",
+              "name": "match",
+              "value": "={{ $json.output }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        -304
+      ],
+      "id": "b1c8e9b9-e7a1-47d9-979b-16e8cc6237bb",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b4f409b2-62af-4bb1-855b-b52677a762fe",
+              "name": "Resumo",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        688,
+        112
+      ],
+      "id": "0b00b60b-79bd-4b67-a29d-6c2c837f886b",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f138a017-dbd7-4e2b-a3ad-a24b9d080c34",
+              "leftValue": "={{ $json.match.match }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "0f1915f2-3d6c-4b92-ad62-df1ca4b63798",
+              "leftValue": "={{ $json.Resumo }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        1168,
+        -112
+      ],
+      "id": "632dfb4f-662e-42a1-9bad-2b033914ec2e",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/12mNWD7OVw9id2SWOb0qps28MQjo0U-I1trs-Rzrxcu4/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Página1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12mNWD7OVw9id2SWOb0qps28MQjo0U-I1trs-Rzrxcu4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "match": "={{ $json.match.match }}",
+            "resumo": "={{ $json.Resumo }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "match",
+              "displayName": "match",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resumo",
+              "displayName": "resumo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1376,
+        -112
+      ],
+      "id": "2c0da270-6bcb-4942-91da-f04f0aa35ab3",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "X1rjp3hw9p5cP4LF",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Match",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Resumo",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Resumo",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Match",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Match",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Match": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resumo": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f499e4c1-1872-4aad-8923-43cbaebed0e4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3f6eca5b0722f30522aa3b19af12f2b77e2933400a842d9b2e88f667662cae50"
+  },
+  "id": "3dyJhnglTRWZUsn1",
+  "tags": []
+}
